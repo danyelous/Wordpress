@@ -1,3 +1,6 @@
+<?php
+
+
 // Function to add a dynamic message and control the place order button based on minimum order amount
 function add_dynamic_place_order_message() {
     // Check if we're on the checkout page, if not, exit the function
@@ -55,3 +58,7 @@ function add_dynamic_place_order_message() {
 
 // Hook the function to run before the submit button in the review order section
 add_action('woocommerce_review_order_before_submit', 'add_dynamic_place_order_message');
+
+
+
+?>
