@@ -61,4 +61,77 @@ add_action('woocommerce_review_order_before_submit', 'add_dynamic_place_order_me
 
 
 
+
+
+
+
+//Another version, updated.
+
+
+function add_dynamic_checkout_message() {
+    // Only run on the cart page
+    if ( ! is_cart() && ! is_checkout() ) return;
+
+    // Define your minimum order amount
+    $minimum_order = 60000;
+
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Function to update the checkout button and message
+        function updateCheckoutButton() {
+            // Try different selectors to get the total amount
+            var totalText = $('.order-total .amount').text() || 
+                            $('.wc-proceed-to-checkout .amount').text() ||
+                            $('.cart_totals .order-total td .amount').text();
+            
+            // Clean the total amount
+            var total = parseFloat(totalText.replace(/[^0-9.,]/g, '').replace(',', '.').replace(/\.(?=.*\.)/g, ''));
+            
+            var $checkoutButton = $('.checkout-button');
+            var $message = $('.checkout-disabled-message');
+
+            if (isNaN(total)) {
+                console.error('No se pudo determinar el total del carrito');
+                return;
+            }
+
+            if (total < <?php echo $minimum_order; ?>) {
+                $checkoutButton.addClass('disable-checkout-btn');
+                $checkoutButton.prop('disabled', true);
+                $checkoutButton.removeAttr('href');
+                if ($message.length === 0) {
+                    $checkoutButton.after('<p class="checkout-disabled-message" style="color: red; margin-top: 10px;">El monto mínimo de compra es de $<?php echo number_format($minimum_order, 2, ',', '.'); ?></p>');
+                }
+            } else {
+                $checkoutButton.removeClass('disable-checkout-btn');
+                $checkoutButton.prop('disabled', false);
+                $checkoutButton.attr('href', '<?php echo wc_get_checkout_url(); ?>');
+                $message.remove();
+            }
+        }
+
+        // Run on page load
+        updateCheckoutButton();
+
+        // Run when cart is updated
+        $(document.body).on('updated_cart_totals updated_checkout', updateCheckoutButton);
+        
+        // Also run when quantity changes (may need delay for AJAX)
+        $('body').on('change', 'input.qty', function() {
+            setTimeout(updateCheckoutButton, 500);
+        });
+    });
+    </script>
+    <?php
+}
+add_action('wp_footer', 'add_dynamic_checkout_message');
+
+
+
+
+
+
+
+
 ?>
